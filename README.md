@@ -22,13 +22,6 @@ Repeat for multiple rounds
 Inject attacks into selected clients
     ↓
 Measure whether malicious updates look different
-```
-
-The purpose is **not to build the final TRACE-FL defense yet**.
-
-The purpose is to create a reliable experimental foundation.
-
----
 
 # 2. Technology Choice
 
