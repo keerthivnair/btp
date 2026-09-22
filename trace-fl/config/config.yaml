@@ -1,0 +1,13 @@
+num_clients: 5
+num_rounds: 3
+
+local_training:
+  epochs: 1
+  batch_size: 32
+  learning_rate: 0.01
+
+federation:
+  fraction_train: 1.0
+  min_available_clients: 2
+
+seed: 42
