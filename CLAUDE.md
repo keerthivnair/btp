@@ -29,7 +29,7 @@ uv run python scripts/check_environment.py
 
 # Docker (see trace-fl/DOCKER.md): same commands inside a pinned Linux container
 python run.py                                    # interactive launcher (stdlib-only, runs on host); per-run config overrides are mounted from experiments/<timestamp>/config.yaml, never written to config/config.yaml unless the user confirms
-python run.py sim | test [pytest args] | shell | rebuild
+python run.py sim | deploy | test [pytest args] | shell | rebuild   # deploy = SuperLink + N SuperNode containers
 docker compose run --rm --build trace-fl pytest  # what `run.py test` wraps
 ```
 
@@ -61,7 +61,9 @@ Per-round bookkeeping (selected/successful/failed clients, timings, global loss/
 
 `TRACEClient` (Flower `NumPyClient`) loads its own data partition via `data/dataset.py::FederatedDatasetProvider`, trains locally (`training/trainer.py::train`), and returns updated parameters + example count + a metrics dict containing `client_id` (used server-side to identify the client in logs, since Ray's `ClientProxy.cid` isn't human-readable).
 
-**Partition ID assignment.** `context.node_id` is a random 64-bit int, so it can't be used to pick a data partition. `client_fn` uses `context.node_config["partition-id"]`, which Flower's simulation provides (0..num-supernodes-1). In deployment mode it must be passed per SuperNode via `--node-config "partition-id=i num-partitions=N"`. The fallback `fcntl.flock` counter on `/tmp/flwr_client_counter.txt` is Unix-only, and it can't work across containers (each container has its own `/tmp`), so don't rely on it.
+**Partition ID assignment.** `context.node_id` is a random 64-bit int, so it can't be used to pick a data partition. `client_fn` uses `context.node_config["partition-id"]`, which Flower's simulation provides (0..num-supernodes-1). In deployment mode `run.py` passes it per SuperNode via `--node-config "partition-id=i num-partitions=N"`.
+
+**Config loading.** Always use `core/config.py::load_config()`, which resolves `config/config.yaml` relative to the code rather than the CWD. Flower loads the app from an installed FAB, and the CWD differs between simulation and deployment containers.
 
 ### Data partitioning (`data/dataset.py`, `data/partition.py`)
 

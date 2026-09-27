@@ -1,4 +1,3 @@
-import yaml
 import time
 import torch
 from typing import Dict, List, Optional, Tuple, Union
@@ -19,6 +18,7 @@ from flwr.server.strategy import Strategy
 from flwr.server import ServerApp, ServerConfig, ServerAppComponents
 from flwr.common import Context
 
+from core.config import load_config
 from core.model import create_model, get_parameters, set_parameters
 from core.parameters import flower_parameters_to_ndarrays, ndarrays_to_flower_parameters
 from federation.strategy import FedAvgStrategy
@@ -211,9 +211,7 @@ class TRACEStrategy(Strategy):
 
 def server_fn(context: Context) -> ServerAppComponents:
     """Flower ServerApp entry point."""
-    with open("config/config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-        
+    config = load_config()
     num_rounds = config.get("num_rounds", 20)
     
     strategy = TRACEStrategy(config)

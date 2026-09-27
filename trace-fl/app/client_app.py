@@ -1,9 +1,9 @@
-import yaml
 import torch
 import time
 from flwr.client import NumPyClient, ClientApp
 from flwr.common import Context
 
+from core.config import load_config
 from core.model import create_model, set_parameters, get_parameters
 from core.parameters import flower_parameters_to_ndarrays, ndarrays_to_flower_parameters
 from data.dataset import FederatedDatasetProvider
@@ -102,31 +102,11 @@ class TRACEClient(NumPyClient):
 
 def client_fn(context: Context):
     """Flower ClientApp entry point."""
-    # Load default configuration
-    with open("config/config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-    
-    # Merge with context config if provided
-    # ...
-    
-    # In Simulation Runtime, node_id is a random 64-bit integer.
-    # We use a file-based counter to deterministically assign unique partition IDs.
-    if "partition-id" in context.node_config:
-        partition_id = int(context.node_config["partition-id"])
-    else:
-        import os, fcntl
-        counter_file = "/tmp/flwr_client_counter.txt"
-        with open(counter_file, "a+") as f:
-            fcntl.flock(f, fcntl.LOCK_EX)
-            f.seek(0)
-            val = f.read().strip()
-            count = int(val) if val else 0
-            f.seek(0)
-            f.truncate()
-            f.write(str(count + 1))
-            fcntl.flock(f, fcntl.LOCK_UN)
-        partition_id = count % config.get("num_clients", 20)
-        
+    config = load_config()
+
+    # Simulation sets partition-id automatically; in deployment each SuperNode
+    # must be started with --node-config "partition-id=<i> num-partitions=<N>".
+    partition_id = int(context.node_config["partition-id"])
     client_id = f"client_{partition_id}"
     
     return TRACEClient(client_id, partition_id, config).to_client()
