@@ -13,11 +13,17 @@ uv sync
 ```
 
 ### Run the Simulation
-To execute a local federated learning simulation (by default, managing 12 Ray actors/clients), use the following command:
+To execute a local federated learning simulation with `num_clients` simulated clients (from `config/config.yaml`), use:
 ```bash
-uv run flwr run . --stream
+uv run sh scripts/run_simulation.sh
 ```
-*Note: The `--stream` flag ensures real-time telemetry logs are output directly to your terminal.*
+The script:
+- sets Flower's simulated client count to match `num_clients` (Flower ≥1.32 defaults to only 2);
+- stops Flower from re-installing dependencies for each run, so the run uses the versions in `uv.lock`;
+- calls `flwr run . --stream`. The `--stream` flag prints telemetry logs live in your terminal.
+
+### Run with Docker
+To avoid Python/OS setup differences entirely, use the container: `docker compose run --rm trace-fl`. See [DOCKER.md](DOCKER.md).
 
 ---
 

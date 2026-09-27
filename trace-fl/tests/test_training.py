@@ -1,14 +1,14 @@
 import torch
 from core.model import create_model, get_parameters
 from data.dataset import FederatedDatasetProvider
-from training.trainer import train, test
+from training.trainer import train, test as evaluate_model
 
 def test_training_step():
     provider = FederatedDatasetProvider(num_clients=2, batch_size=32, seed=42)
     partition = provider.get_partition(0)
     model = create_model()
     
-    initial_params = get_parameters(model)
+    initial_params = [p.copy() for p in get_parameters(model)]
     
     device = torch.device("cpu")
     
@@ -33,3 +33,14 @@ def test_training_step():
             break
             
     assert changed
+
+def test_eval_step():
+    provider = FederatedDatasetProvider(num_clients=2, batch_size=32, seed=42)
+    partition = provider.get_partition(0)
+    model = create_model()
+    device = torch.device("cpu")
+    
+    loss, accuracy = evaluate_model(model, partition.test_loader, device)
+    assert isinstance(loss, float)
+    assert isinstance(accuracy, float)
+

@@ -184,7 +184,11 @@ class TRACEStrategy(Strategy):
         
         self.round_state.global_loss = loss
         self.round_state.global_accuracy = accuracy
-        self.round_state.round_duration = time.time() - self.round_state.round_start_time
+        # Round 0 evaluates the initial model before any configure_fit has set a start time.
+        if server_round == 0:
+            self.round_state.round_duration = 0.0
+        else:
+            self.round_state.round_duration = time.time() - self.round_state.round_start_time
         
         round_totals = self.tracker.get_round_totals(server_round)
         

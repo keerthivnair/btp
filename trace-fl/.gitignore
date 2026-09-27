@@ -6,4 +6,4 @@ __pycache__/
 .coverage
 experiments/
 *.log
-data/
+/data/MNIST/

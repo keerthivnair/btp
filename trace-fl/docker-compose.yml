@@ -1,0 +1,9 @@
+services:
+  trace-fl:
+    build: .
+    image: trace-fl:latest
+    # Ray's object store lives in /dev/shm and wants >30% of RAM; Docker's default is 64MB.
+    shm_size: 3gb
+    volumes:
+      - ./config:/app/config:ro
+      - ./experiments:/app/experiments

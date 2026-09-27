@@ -2,13 +2,13 @@ import sys
 import platform
 import os
 
-REQUIRED_PYTHON = "3.11.14"
+REQUIRED_PYTHON = "3.11"
 
 def check_python_version():
     current_version = platform.python_version()
     print(f"Python version: {current_version}")
-    if current_version != REQUIRED_PYTHON:
-        print(f"ERROR: Expected Python {REQUIRED_PYTHON}, found {current_version}.")
+    if sys.version_info < (3, 11):
+        print(f"ERROR: Expected Python >= {REQUIRED_PYTHON}, found {current_version}.")
         sys.exit(1)
 
 def check_packages():
