@@ -28,9 +28,9 @@ uv run pytest tests/test_model.py::test_name # single test case
 uv run python scripts/check_environment.py
 
 # Docker (see trace-fl/DOCKER.md): same commands inside a pinned Linux container
-docker compose build
-docker compose run --rm trace-fl              # simulation
-docker compose run --rm trace-fl pytest       # tests
+python run.py                                    # interactive launcher (stdlib-only, runs on host); per-run config overrides are mounted from experiments/<timestamp>/config.yaml, never written to config/config.yaml unless the user confirms
+python run.py sim | test [pytest args] | shell | rebuild
+docker compose run --rm --build trace-fl pytest  # what `run.py test` wraps
 ```
 
 Simulation parameters (client count, rounds, local epochs, batch size, LR, seed) live in `config/config.yaml` and are read directly by both `app/server_app.py` and `app/client_app.py` at runtime — not via Flower's `run_config`/`pyproject.toml` toml tables.

@@ -23,7 +23,7 @@ The script:
 - calls `flwr run . --stream`. The `--stream` flag prints telemetry logs live in your terminal.
 
 ### Run with Docker
-To avoid Python/OS setup differences entirely, use the container: `docker compose run --rm trace-fl`. See [DOCKER.md](DOCKER.md).
+To avoid Python/OS setup differences entirely, run `python run.py` for an interactive launcher. See [DOCKER.md](DOCKER.md).
 
 ---
 

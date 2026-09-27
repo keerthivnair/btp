@@ -4,20 +4,41 @@ TRACE-FL runs as a **single container** that holds the whole Flower simulation: 
 
 ## Quickstart
 
-You need Docker Desktop (macOS or Windows) or Docker Engine with the Compose plugin (Linux). Nothing else has to be installed on the host: no Python, no `uv`, no PyTorch.
+You need Docker Desktop (macOS or Windows) or Docker Engine with the Compose plugin (Linux). Nothing else is required: no `uv`, no PyTorch, and no specific Python version.
 
 ```bash
 cd trace-fl
-
-docker compose build                          # first build: ~5 min (downloads PyTorch + MNIST)
-docker compose run --rm trace-fl              # run the FL simulation
-docker compose run --rm trace-fl pytest       # run the test suite
-docker compose run --rm trace-fl pytest tests/test_model.py   # a single test file
-docker compose run --rm trace-fl bash         # shell inside the container
+python run.py        # python3 on some Macs/Linux, py on Windows
 ```
 
-- **Changing the experiment:** edit `config/config.yaml` (clients, rounds, epochs, batch size, learning rate, seed) and run again. No rebuild is needed, because `config/` is mounted into the container.
-- **Changing Python code or dependencies:** rebuild with `docker compose build`.
+`run.py` checks that Docker is installed and running, then shows a menu:
+
+```
+TRACE-FL (Docker)
+  1) Run simulation
+  2) Run tests
+  3) Open a shell in the container
+  4) Rebuild image from scratch (only if something seems broken)
+  q) Quit
+```
+
+- **Run simulation** shows the default settings from `config/config.yaml` (clients, rounds, epochs, batch size, learning rate, seed) and lets you change any of them **for that run only**:
+  - `config/config.yaml` is not modified, so experiment settings never end up in git by accident.
+  - After the run you're asked whether to save the changes as the new defaults (default: no).
+  - Every run, including `python run.py sim`, records the exact config it used in `experiments/<timestamp>/config.yaml` (git-ignored), so every result can be traced to its settings.
+- Every option rebuilds the image first if the code or dependencies changed. The first build takes about 5 minutes because it downloads PyTorch and MNIST; later runs start in seconds.
+
+`run.py` uses only Python's standard library, so any Python 3 works. It also accepts direct commands, which is useful for scripts:
+
+| Task | `run.py` | Plain Docker (no Python on host) |
+|---|---|---|
+| Run the simulation | `python run.py sim` | `docker compose run --rm --build trace-fl` |
+| Run all tests | `python run.py test` | `docker compose run --rm --build trace-fl pytest` |
+| Run one test file | `python run.py test tests/test_model.py` | `docker compose run --rm --build trace-fl pytest tests/test_model.py` |
+| Shell inside the container | `python run.py shell` | `docker compose run --rm --build trace-fl bash` |
+| Rebuild from scratch | `python run.py rebuild` | `docker compose build --no-cache` |
+
+To change the defaults permanently, edit `config/config.yaml` by hand. `config/` is mounted into the container, so it's read fresh on every run without a rebuild.
 
 ## What is inside the container
 
@@ -51,6 +72,7 @@ Everything runs in one container because Phase 1 uses Flower **simulation**: cli
 |---|---|
 | `Dockerfile` | `python:3.11.14-slim-bookworm` + `uv` 0.12.19; installs `uv.lock` with `uv sync --frozen`; downloads MNIST at build time |
 | `docker-compose.yml` | Sets `shm_size` for Ray; mounts `config/` (read-only) and `experiments/` |
+| `run.py` | Interactive launcher: checks Docker, edits config, wraps the compose commands |
 | `.dockerignore` | Keeps the host's `.venv`, caches and downloaded data out of the image |
 | `.gitattributes` | Forces LF line endings so shell scripts work when the repo is cloned on Windows |
 | `scripts/run_simulation.sh` | Sets the simulated client count to `num_clients` and starts the run; also works outside Docker |
