@@ -1,6 +1,11 @@
 num_clients: 5
 num_rounds: 3
 
+dataset:
+  name: fashion_mnist
+  partition_type: dirichlet
+  alpha: 0.5
+
 local_training:
   epochs: 1
   batch_size: 32

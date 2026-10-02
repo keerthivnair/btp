@@ -13,17 +13,11 @@ uv sync
 ```
 
 ### Run the Simulation
-To execute a local federated learning simulation with `num_clients` simulated clients (from `config/config.yaml`), use:
+To execute a local federated learning simulation (by default, managing 12 Ray actors/clients), use the following command:
 ```bash
-uv run sh scripts/run_simulation.sh
+uv run flwr run . --stream
 ```
-The script:
-- sets Flower's simulated client count to match `num_clients` (Flower ≥1.32 defaults to only 2);
-- stops Flower from re-installing dependencies for each run, so the run uses the versions in `uv.lock`;
-- calls `flwr run . --stream`. The `--stream` flag prints telemetry logs live in your terminal.
-
-### Run with Docker
-To avoid Python/OS setup differences entirely, run `python run.py` for an interactive launcher. See [DOCKER.md](DOCKER.md).
+*Note: The `--stream` flag ensures real-time telemetry logs are output directly to your terminal.*
 
 ---
 
@@ -71,8 +65,6 @@ A core requirement of Federated Learning is that clients only train on their own
 In `data/dataset.py`, the `FederatedDatasetProvider` uses a fixed random seed (`torch.Generator().manual_seed(seed)`) in conjunction with PyTorch's `random_split`. Because the seed is fixed, the split is perfectly deterministic across all client processes.
 
 ### Resolving the `partition_id`
-Each client needs to know which partition it owns. In `app/client_app.py`, `client_fn` reads it from `context.node_config["partition-id"]`:
-- **Simulation:** Flower assigns each simulated SuperNode a sequential `partition-id` (0, 1, 2, ...).
-- **Deployment mode:** each SuperNode container is started with `--node-config "partition-id=<i> num-partitions=<N>"`.
-
-Client 0 loads `self.train_partitions[0]`, Client 1 loads `self.train_partitions[1]`, and so on, so the datasets are mutually exclusive.
+When the Simulation engine (Ray) spins up multiple clients in parallel, each client needs to know which partition it owns. In `app/client_app.py`, a file-based lock (`fcntl.flock`) is used on a temporary counter file (`/tmp/flwr_client_counter.txt`). 
+This guarantees that as clients boot up simultaneously, they are assigned a strictly sequential `partition_id` (0, 1, 2...). 
+Client 0 will load `self.train_partitions[0]`, Client 1 will load `self.train_partitions[1]`, ensuring mutually exclusive datasets.
