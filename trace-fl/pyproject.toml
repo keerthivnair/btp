@@ -9,13 +9,14 @@ description = "TRACE-FL Phase 1 - Federated Learning Infrastructure"
 authors = [
     { name = "Sentinels", email = "sentinel@example.com" }
 ]
-requires-python = ">=3.11"
+requires-python = "==3.11.14"
 dependencies = [
     "flwr[simulation]>=1.15.2",
     "torch>=2.2.0",
     "torchvision>=0.17.0",
-    "numpy>=1.26.0",
+    "numpy>=1.26.0,<2.0.0",
     "pyyaml>=6.0.1",
+    "matplotlib>=3.11.2",
 ]
 
 [project.optional-dependencies]
@@ -48,3 +49,8 @@ torchvision = { index = "pytorch-cpu" }
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
